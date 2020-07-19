@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    </head>
+<body>
+	<center>
+		<div style="display:inline">
+			<canvas id="canvas2" width="150" height="150" style="border:1px solid#d3d3d3;margin-bottom:250px">
+					Your browser does not support the HTML5 canvas tag.
+			</canvas>
+		</div>
+		<div style="display:inline">
+			<canvas id="canvas1" width="600" height="600" style="border:1px solid#d3d3d3;">
+					Your browser does not support the HTML5 canvas tag.
+			</canvas>
+		</div>
+		<script>
+				function drawRotated(degrees)
+				{
+					ctx2.clearRect(0,0, canvas2.width, canvas2.height);
+					ctx2.save();
+					ctx2.translate(canvas2.width/2, canvas2.height/2);
+					ctx2.rotate(-degrees*Math.PI/180);
+					ctx2.drawImage(image,-image.width/2,-image.height/2);
+					ctx2.restore();
+				}
+
+				function parseCmd()
+				{
+					var cmdField = $("#cmd");
+					cmd = cmdField.val();
+					if(cmd.length==0)
+					{
+						alert("Enter a command!");
+						return;
+					}
+					cmdField.val("");
+					var validCmdFormat = /^(\w+)\s(\d+)$/i;
+					var validCmds = /lt|rt|bk|fd|circle/i;
+
+					var matches = cmd.match(validCmdFormat);
+					if(matches)
+					{
+						var param = parseInt(matches[2]);
+						if(matches[1].match(validCmds))
+						{
+							var realCmd = matches[1].toLowerCase();
+							console.log("realCmd = "+realCmd+", param = "+param);
+							console.log("Old deg_rotate = "+deg_rotate);
+							console.log("old x = "+cur_x+", old y = "+cur_y);
+							
+							if(realCmd=="lt" || realCmd=="rt")
+							{
+								if(realCmd=="rt")
+									deg_rotate -= param;
+								else if(realCmd=="lt")
+									deg_rotate += param;
+								
+								deg_rotate+=360;
+								deg_rotate%=360;
+								drawRotated(deg_rotate);
+								
+							}
+
+							if(realCmd=="bk" || realCmd=="fd")
+							{
+								ctx.moveTo(cur_x, cur_y);
+
+								var x_incr = param*Math.sin(deg_rotate*Math.PI/180);
+								var y_incr = param*Math.cos(deg_rotate*Math.PI/180);
+								
+								console.log("x incr = "+x_incr+", y incr = "+y_incr);
+								
+								if(realCmd=="bk"){
+									cur_x += x_incr;
+									cur_y += y_incr;
+								}
+								else if(realCmd=="fd"){
+									cur_x -= x_incr;
+									cur_y -= y_incr;
+								}
+
+								ctx.lineTo(cur_x,cur_y);
+								ctx.stroke();
+
+								drawRotated(deg_rotate);
+							}
+							
+							if(realCmd=="circle")
+							{
+								ctx.beginPath();
+								ctx.arc(cur_x,cur_y,param,0,2*Math.PI);
+								ctx.stroke();
+							}
+							console.log("new x = "+cur_x+", new y = "+cur_y);
+							console.log("new deg_rotate = "+deg_rotate);
+
+						}
+						else
+						{
+							alert("I don't know how to "+matches[1]+"!");
+						}
+					}
+					else
+					{
+						alert("I don't know how to "+cmd+"!");
+					}
+				}
+
+				var canvas = $("#canvas1")[0];
+				var ctx = canvas.getContext("2d");
+				
+				var canvas2 = $("#canvas2")[0];
+				var ctx2 = canvas2.getContext("2d");
+
+				var height = canvas.height;
+				var width = canvas.width;
+
+				var cur_x = 300;
+				var cur_y = 300;
+				var deg_rotate = 0;
+
+
+				//drawTurtle(height/2, width/2);
+
+				var image=document.createElement("img");
+				image.src="Turtle-01-128.png";
+				image.onload=function(){
+					drawRotated(deg_rotate);
+				}
+				</script>
+		<br>
+		<input type="text" id="cmd" name="cmd" placeholder="command" onkeydown="if (event.keyCode == 13) parseCmd();"></input>
+		<input type="button" value="submit" id="cmdbtn" name="cmdbtn" onclick="parseCmd()"></input>
+	</center>
+</body>
+</html>
+
